@@ -1,0 +1,27 @@
+name: Test IAM Keycard
+on:
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume CI role via OIDC
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::482352877891:role/petclinic-github-actions-role
+          aws-region: us-east-1
+
+      - name: Confirm identity is the CI role, not a human user
+        run: aws sts get-caller-identity
+
+      - name: Log into ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | \
+          docker login --username AWS --password-stdin \
+            482352877891.dkr.ecr.us-east-1.amazonaws.com
+          echo "ECR login successful - CI robot has its keycard."
