@@ -1,0 +1,3 @@
+[submodule "petclinic-eks-deployment"]
+	path = petclinic-eks-deployment
+	url = https://github.com/petclinic-project/petclinic-eks-deployment.git
