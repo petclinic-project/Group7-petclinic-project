@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-genai-service
+  namespace: petclinic-dev
+  labels:
+    app: petclinic-dev-genai-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-dev-genai-service
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-genai-service
+    spec:
+      containers:
+        - name: genai-service
+          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-genai-service:latest
+          ports:
+            - containerPort: 8084
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "384Mi"
+              cpu: "200m"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: SPRING_CLOUD_CONFIG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_CLOUD_CONFIG_URI
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: petclinic-secret
+                  key: OPENAI_API_KEY
+                  optional: true
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8084
+            initialDelaySeconds: 120
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-genai-service
+  namespace: petclinic-dev
+spec:
+  selector:
+    app: petclinic-dev-genai-service
+  ports:
+    - protocol: TCP
+      port: 8084
+      targetPort: 8084
