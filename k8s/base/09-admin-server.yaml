@@ -1,0 +1,71 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-admin-server
+  namespace: petclinic-dev
+  labels:
+    app: petclinic-dev-admin-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: petclinic-dev-admin-server
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-admin-server
+    spec:
+      containers:
+        - name: admin-server
+          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-admin-server:latest
+          ports:
+            - containerPort: 9090
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "384Mi"
+              cpu: "200m"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_PROFILES_ACTIVE
+            - name: SPRING_CLOUD_CONFIG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_CLOUD_CONFIG_URI
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+          readinessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9090
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            failureThreshold: 10
+          livenessProbe:
+            httpGet:
+              path: /actuator/health
+              port: 9090
+            initialDelaySeconds: 120
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-admin-server
+  namespace: petclinic-dev
+spec:
+  selector:
+    app: petclinic-dev-admin-server
+  ports:
+    - protocol: TCP
+      port: 9090
+      targetPort: 9090
