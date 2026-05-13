@@ -1,0 +1,56 @@
+name: ArgoCD Sync Pipeline
+
+on:
+  push:
+    branches: [ main, feature/deployment ]
+    paths:
+      - 'k8s/**'
+
+jobs:
+  argocd-sync:
+    name: Sync ArgoCD Application
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::527582557964:role/petclinic-dev-github-actions-role
+          aws-region: us-east-1
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name petclinic-dev-eks \
+            --region us-east-1
+
+      - name: Install ArgoCD CLI
+        run: |
+          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
+          chmod +x argocd
+          sudo mv argocd /usr/local/bin/
+
+      - name: Login to ArgoCD
+        run: |
+          argocd login \
+            --insecure \
+            --username admin \
+            --password ${{ secrets.ARGOCD_PASSWORD }} \
+            ${{ secrets.ARGOCD_SERVER }}
+
+      - name: Sync ArgoCD Application
+        run: |
+          argocd app sync petclinic-dev \
+            --force \
+            --prune
+
+      - name: Wait for sync
+        run: |
+          argocd app wait petclinic-dev \
+            --health \
+            --timeout 300
