@@ -36,7 +36,7 @@ jobs:
 
       - name: Login to ArgoCD
         run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --grpc-web --auth-token ${{ secrets.ARGOCD_TOKEN }}
+          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --grpc-web --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
 
       - name: Sync ArgoCD Application
         run: |
