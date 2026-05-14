@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
   - 00-namespace.yaml
   - 01-configmap.yaml
-  - 02-secret.yaml
   - 03-config-server.yaml
   - 04-discovery-server.yaml
   - 05-api-gateway.yaml
@@ -17,7 +16,3 @@ resources:
   - 12-zipkin.yaml
   - 13-prometheus.yaml
   - 14-grafana.yaml
-# updated
-# trigger
-# trigger
-# trigger2
