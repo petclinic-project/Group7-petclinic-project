@@ -36,12 +36,12 @@ jobs:
           chmod +x argocd
           sudo mv argocd /usr/local/bin/
 
-      - name: Login to ArgoCD
+     - name: Login to ArgoCD
         run: |
-          argocd login \
+          argocd login ${{ secrets.ARGOCD_SERVER }} \
             --insecure \
-            --auth-token ${{ secrets.ARGOCD_TOKEN }} \
-            ${{ secrets.ARGOCD_SERVER }}
+            --grpc-web \
+            --auth-token ${{ secrets.ARGOCD_TOKEN }}
 
       - name: Sync ArgoCD Application
         run: |
