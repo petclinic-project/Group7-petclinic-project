@@ -7,4 +7,5 @@ data:
   SPRING_PROFILES_ACTIVE: "docker"
   SPRING_CLOUD_CONFIG_URI: "http://petclinic-dev-config-server:8888"
   EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://petclinic-dev-discovery-server:8761/eureka"
-  ZIPKIN_BASE_URL: "http://petclinic-dev-zipkin:9411"
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "http://petclinic-dev-zipkin:9411/api/v2/spans"
+  SPRING_ZIPKIN_BASE_URL: "http://petclinic-dev-zipkin:9411"
