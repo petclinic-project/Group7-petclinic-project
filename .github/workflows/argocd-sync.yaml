@@ -44,4 +44,4 @@ jobs:
 
       - name: Wait for sync
         run: |
-          argocd app wait petclinic-dev --health --timeout 300
+          argocd app wait petclinic-dev --health --timeout 600
