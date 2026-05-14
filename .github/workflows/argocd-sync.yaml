@@ -26,9 +26,7 @@ jobs:
 
       - name: Update kubeconfig
         run: |
-          aws eks update-kubeconfig \
-            --name petclinic-dev-eks \
-            --region us-east-1
+          aws eks update-kubeconfig --name petclinic-dev-eks --region us-east-1
 
       - name: Install ArgoCD CLI
         run: |
@@ -36,21 +34,14 @@ jobs:
           chmod +x argocd
           sudo mv argocd /usr/local/bin/
 
-     - name: Login to ArgoCD
+      - name: Login to ArgoCD
         run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} \
-            --insecure \
-            --grpc-web \
-            --auth-token ${{ secrets.ARGOCD_TOKEN }}
+          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --grpc-web --auth-token ${{ secrets.ARGOCD_TOKEN }}
 
       - name: Sync ArgoCD Application
         run: |
-          argocd app sync petclinic-dev \
-            --force \
-            --prune
+          argocd app sync petclinic-dev --force --prune
 
       - name: Wait for sync
         run: |
-          argocd app wait petclinic-dev \
-            --health \
-            --timeout 300
+          argocd app wait petclinic-dev --health --timeout 300
