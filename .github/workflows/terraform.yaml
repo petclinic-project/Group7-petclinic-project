@@ -2,11 +2,7 @@ name: Terraform Infrastructure Pipeline
 
 on:
   push:
-    branches: [ main, feature/deployment ]
-    paths:
-      - 'terraform/**'
-  pull_request:
-    branches: [ main ]
+    branches: [ feature/deployment ]
     paths:
       - 'terraform/**'
 
