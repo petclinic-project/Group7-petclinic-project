@@ -5,6 +5,7 @@ on:
     branches: [ main, feature/deployment ]
     paths:
       - 'k8s/**'
+      - 'kubernetes/**'
 
 permissions:
   id-token: write
@@ -36,7 +37,7 @@ jobs:
           chmod +x argocd
           sudo mv argocd /usr/local/bin/
 
-- name: Login to ArgoCD
+      - name: Login to ArgoCD
         run: |
           argocd login \
             --insecure \
