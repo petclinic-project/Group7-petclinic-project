@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: genai-service
-          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-genai-service:latest
+          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-genai-service:19cdf54
           ports:
             - containerPort: 8084
           resources:
