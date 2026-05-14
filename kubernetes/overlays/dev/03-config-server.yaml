@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-config-server:latest
+          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-config-server:19cdf54
           ports:
             - containerPort: 8888
           resources:
