@@ -1,1 +1,1 @@
-# Petclinic-eks-platform# trigger CI
+# Group7-petclinic-project
