@@ -20,4 +20,4 @@ spec:
               service:
                 name: petclinic-dev-api-gateway
                 port:
-                  number: 80
+                  number: 8080
