@@ -6,6 +6,8 @@ on:
       - 'kubernetes/**'
       - 'helm/**'
       - 'argocd/**'
+      - '.github/workflows/argocd-sync.yaml'
+  workflow_dispatch:
 permissions:
   id-token: write
   contents: read
