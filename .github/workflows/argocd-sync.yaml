@@ -60,6 +60,10 @@ jobs:
             --self-heal \
             --upsert
 
+      - name: Terminate any running operation
+        run: |
+          argocd app terminate-op petclinic-dev || true
+
       - name: Sync ArgoCD Application
         run: |
           argocd app sync petclinic-dev --force --prune
