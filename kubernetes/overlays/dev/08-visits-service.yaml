@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: visits-service
-          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-visits-service:latest
+          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-visits-service:d1d52a6
           ports:
             - containerPort: 8082
           resources:
