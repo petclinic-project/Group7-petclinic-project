@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.zipkin.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.zipkin.name }}
+spec:
+  replicas: {{ .Values.services.zipkin.replicas }}
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.zipkin.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.zipkin.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.zipkin.name }}
+          image: "{{ .Values.services.zipkin.image }}:{{ .Values.services.zipkin.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.zipkin.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.zipkin.resources.requests.memory }}
+              cpu: {{ .Values.services.zipkin.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.zipkin.resources.limits.memory }}
+              cpu: {{ .Values.services.zipkin.resources.limits.cpu }}
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.services.zipkin.port }}
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: {{ .Values.services.zipkin.port }}
+            initialDelaySeconds: 60
+            periodSeconds: 15
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.zipkin.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.zipkin.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.zipkin.port }}
+      targetPort: {{ .Values.services.zipkin.port }}

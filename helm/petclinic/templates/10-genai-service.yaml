@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.genaiService.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.genaiService.name }}
+spec:
+  replicas: {{ .Values.services.genaiService.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.genaiService.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.genaiService.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.genaiService.name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.services.genaiService.image }}:{{ .Values.services.genaiService.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.genaiService.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.genaiService.resources.requests.memory }}
+              cpu: {{ .Values.services.genaiService.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.genaiService.resources.limits.memory }}
+              cpu: {{ .Values.services.genaiService.resources.limits.cpu }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: SPRING_CLOUD_CONFIG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_CLOUD_CONFIG_URI
+            - name: SPRING_CONFIG_IMPORT
+              value: "optional:configserver:http://petclinic-dev-config-server:8888"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Dspring.cloud.config.uri=http://petclinic-dev-config-server:8888 -Dspring.config.import=optional:configserver:http://petclinic-dev-config-server:8888"
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.genaiService.probes.path }}
+              port: {{ .Values.services.genaiService.port }}
+            initialDelaySeconds: {{ .Values.services.genaiService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.genaiService.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.services.genaiService.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.genaiService.probes.path }}
+              port: {{ .Values.services.genaiService.port }}
+            initialDelaySeconds: {{ .Values.services.genaiService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.genaiService.probes.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.services.genaiService.probes.liveness.failureThreshold }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.genaiService.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.genaiService.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.genaiService.port }}
+      targetPort: {{ .Values.services.genaiService.port }}

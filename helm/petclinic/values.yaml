@@ -1,0 +1,257 @@
+namespace: petclinic-dev
+
+image:
+  registry: 527582557964.dkr.ecr.us-east-1.amazonaws.com
+  pullPolicy: IfNotPresent
+
+configmap:
+  SPRING_PROFILES_ACTIVE: "docker"
+  SPRING_CLOUD_CONFIG_URI: "http://petclinic-dev-config-server:8888"
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "http://petclinic-dev-discovery-server:8761/eureka"
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: "http://petclinic-dev-zipkin:9411/api/v2/spans"
+  SPRING_ZIPKIN_BASE_URL: "http://petclinic-dev-zipkin:9411"
+
+services:
+
+  configServer:
+    name: config-server
+    image: petclinic-dev-config-server
+    tag: b3cf082
+    replicas: 1
+    port: 8888
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        failureThreshold: 10
+      liveness:
+        initialDelaySeconds: 60
+        periodSeconds: 15
+
+  discoveryServer:
+    name: discovery-server
+    image: petclinic-dev-discovery-server
+    tag: b3cf082
+    replicas: 1
+    port: 8761
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 30
+        periodSeconds: 10
+        failureThreshold: 10
+      liveness:
+        initialDelaySeconds: 60
+        periodSeconds: 15
+
+  apiGateway:
+    name: api-gateway
+    image: petclinic-dev-api-gateway
+    tag: b3cf082
+    replicas: 1
+    port: 8080
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 15
+      liveness:
+        initialDelaySeconds: 120
+        periodSeconds: 15
+        failureThreshold: 10
+
+  customersService:
+    name: customers-service
+    image: petclinic-dev-customers-service
+    tag: b3cf082
+    replicas: 1
+    port: 8081
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 15
+      liveness:
+        initialDelaySeconds: 120
+        periodSeconds: 15
+        failureThreshold: 10
+
+  vetsService:
+    name: vets-service
+    image: petclinic-dev-vets-service
+    tag: b3cf082
+    replicas: 1
+    port: 8083
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 15
+      liveness:
+        initialDelaySeconds: 120
+        periodSeconds: 15
+        failureThreshold: 10
+
+  visitsService:
+    name: visits-service
+    image: petclinic-dev-visits-service
+    tag: b3cf082
+    replicas: 1
+    port: 8082
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 15
+      liveness:
+        initialDelaySeconds: 120
+        periodSeconds: 15
+        failureThreshold: 10
+
+  adminServer:
+    name: admin-server
+    image: petclinic-dev-admin-server
+    tag: b3cf082
+    replicas: 1
+    port: 9090
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 15
+      liveness:
+        initialDelaySeconds: 120
+        periodSeconds: 15
+        failureThreshold: 10
+
+  genaiService:
+    name: genai-service
+    image: petclinic-dev-genai-service
+    tag: b3cf082
+    replicas: 1
+    port: 8084
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "384Mi"
+        cpu: "200m"
+    probes:
+      path: /actuator/health
+      readiness:
+        initialDelaySeconds: 60
+        periodSeconds: 10
+        failureThreshold: 15
+      liveness:
+        initialDelaySeconds: 120
+        periodSeconds: 15
+        failureThreshold: 10
+
+  zipkin:
+    name: zipkin
+    image: openzipkin/zipkin
+    tag: latest
+    replicas: 1
+    port: 9411
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+
+  prometheus:
+    name: prometheus
+    image: prom/prometheus
+    tag: latest
+    replicas: 1
+    port: 9090
+    resources:
+      requests:
+        memory: "256Mi"
+        cpu: "100m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+
+  grafana:
+    name: grafana
+    image: grafana/grafana
+    tag: latest
+    replicas: 1
+    port: 3000
+    resources:
+      requests:
+        memory: "128Mi"
+        cpu: "100m"
+      limits:
+        memory: "256Mi"
+        cpu: "200m"
+
+ingress:
+  enabled: true
+  port: 8080
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/listen-ports: '[{"HTTP": 80}]'
+    alb.ingress.kubernetes.io/healthcheck-path: /actuator/health
+    alb.ingress.kubernetes.io/tags: Environment=dev,Project=petclinic

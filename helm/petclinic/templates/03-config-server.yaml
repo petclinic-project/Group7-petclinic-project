@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.configServer.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.configServer.name }}
+spec:
+  replicas: {{ .Values.services.configServer.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.configServer.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.configServer.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.configServer.name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.services.configServer.image }}:{{ .Values.services.configServer.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.configServer.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.configServer.resources.requests.memory }}
+              cpu: {{ .Values.services.configServer.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.configServer.resources.limits.memory }}
+              cpu: {{ .Values.services.configServer.resources.limits.cpu }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.configServer.probes.path }}
+              port: {{ .Values.services.configServer.port }}
+            initialDelaySeconds: {{ .Values.services.configServer.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.configServer.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.services.configServer.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.configServer.probes.path }}
+              port: {{ .Values.services.configServer.port }}
+            initialDelaySeconds: {{ .Values.services.configServer.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.configServer.probes.liveness.periodSeconds }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.configServer.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.configServer.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.configServer.port }}
+      targetPort: {{ .Values.services.configServer.port }}

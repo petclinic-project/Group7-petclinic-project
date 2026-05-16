@@ -1,0 +1,112 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petclinic-dev-grafana-config
+  namespace: {{ .Values.namespace }}
+data:
+  grafana.ini: |
+    app_mode = development
+    [paths]
+    provisioning = /etc/grafana/provisioning
+    [server]
+    enable_gzip = true
+    [auth.anonymous]
+    enabled = true
+    org_name = Main Org.
+    org_role = Admin
+  datasources.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        url: http://petclinic-dev-{{ .Values.services.prometheus.name }}:{{ .Values.services.prometheus.port }}
+        isDefault: true
+        editable: true
+  dashboards.yaml: |
+    apiVersion: 1
+    providers:
+      - name: default
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /etc/grafana/dashboards
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.grafana.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.grafana.name }}
+spec:
+  replicas: {{ .Values.services.grafana.replicas }}
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.grafana.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.grafana.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.grafana.name }}
+          image: "{{ .Values.services.grafana.image }}:{{ .Values.services.grafana.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.grafana.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.grafana.resources.requests.memory }}
+              cpu: {{ .Values.services.grafana.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.grafana.resources.limits.memory }}
+              cpu: {{ .Values.services.grafana.resources.limits.cpu }}
+          env:
+            - name: GF_PATHS_PROVISIONING
+              value: /etc/grafana/provisioning
+          volumeMounts:
+            - name: grafana-config
+              mountPath: /etc/grafana/grafana.ini
+              subPath: grafana.ini
+            - name: grafana-datasources
+              mountPath: /etc/grafana/provisioning/datasources/datasources.yaml
+              subPath: datasources.yaml
+            - name: grafana-dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards/dashboards.yaml
+              subPath: dashboards.yaml
+      volumes:
+        - name: grafana-config
+          configMap:
+            name: petclinic-dev-grafana-config
+            items:
+              - key: grafana.ini
+                path: grafana.ini
+        - name: grafana-datasources
+          configMap:
+            name: petclinic-dev-grafana-config
+            items:
+              - key: datasources.yaml
+                path: datasources.yaml
+        - name: grafana-dashboards-config
+          configMap:
+            name: petclinic-dev-grafana-config
+            items:
+              - key: dashboards.yaml
+                path: dashboards.yaml
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.grafana.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.grafana.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.grafana.port }}
+      targetPort: {{ .Values.services.grafana.port }}

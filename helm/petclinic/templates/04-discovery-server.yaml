@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.discoveryServer.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.discoveryServer.name }}
+spec:
+  replicas: {{ .Values.services.discoveryServer.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.discoveryServer.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.discoveryServer.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.discoveryServer.name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.services.discoveryServer.image }}:{{ .Values.services.discoveryServer.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.discoveryServer.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.discoveryServer.resources.requests.memory }}
+              cpu: {{ .Values.services.discoveryServer.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.discoveryServer.resources.limits.memory }}
+              cpu: {{ .Values.services.discoveryServer.resources.limits.cpu }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: SPRING_CLOUD_CONFIG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_CLOUD_CONFIG_URI
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.discoveryServer.probes.path }}
+              port: {{ .Values.services.discoveryServer.port }}
+            initialDelaySeconds: {{ .Values.services.discoveryServer.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.discoveryServer.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.services.discoveryServer.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.discoveryServer.probes.path }}
+              port: {{ .Values.services.discoveryServer.port }}
+            initialDelaySeconds: {{ .Values.services.discoveryServer.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.discoveryServer.probes.liveness.periodSeconds }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.discoveryServer.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.discoveryServer.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.discoveryServer.port }}
+      targetPort: {{ .Values.services.discoveryServer.port }}

@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petclinic-config
+  namespace: {{ .Values.namespace }}
+data:
+  SPRING_PROFILES_ACTIVE: {{ .Values.configmap.SPRING_PROFILES_ACTIVE | quote }}
+  SPRING_CLOUD_CONFIG_URI: {{ .Values.configmap.SPRING_CLOUD_CONFIG_URI | quote }}
+  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: {{ .Values.configmap.EUREKA_CLIENT_SERVICEURL_DEFAULTZONE | quote }}
+  MANAGEMENT_ZIPKIN_TRACING_ENDPOINT: {{ .Values.configmap.MANAGEMENT_ZIPKIN_TRACING_ENDPOINT | quote }}
+  SPRING_ZIPKIN_BASE_URL: {{ .Values.configmap.SPRING_ZIPKIN_BASE_URL | quote }}

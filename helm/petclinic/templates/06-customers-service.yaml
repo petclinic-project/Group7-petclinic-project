@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.customersService.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.customersService.name }}
+spec:
+  replicas: {{ .Values.services.customersService.replicas }}
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.customersService.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.customersService.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.customersService.name }}
+          image: "{{ .Values.image.registry }}/{{ .Values.services.customersService.image }}:{{ .Values.services.customersService.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.customersService.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.customersService.resources.requests.memory }}
+              cpu: {{ .Values.services.customersService.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.customersService.resources.limits.memory }}
+              cpu: {{ .Values.services.customersService.resources.limits.cpu }}
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "docker"
+            - name: SPRING_CLOUD_CONFIG_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: SPRING_CLOUD_CONFIG_URI
+            - name: SPRING_CONFIG_IMPORT
+              value: "optional:configserver:http://petclinic-dev-config-server:8888"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+            - name: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+              valueFrom:
+                configMapKeyRef:
+                  name: petclinic-config
+                  key: MANAGEMENT_ZIPKIN_TRACING_ENDPOINT
+            - name: JAVA_TOOL_OPTIONS
+              value: "-Dspring.cloud.config.uri=http://petclinic-dev-config-server:8888 -Dspring.config.import=optional:configserver:http://petclinic-dev-config-server:8888"
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.services.customersService.probes.path }}
+              port: {{ .Values.services.customersService.port }}
+            initialDelaySeconds: {{ .Values.services.customersService.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.customersService.probes.readiness.periodSeconds }}
+            failureThreshold: {{ .Values.services.customersService.probes.readiness.failureThreshold }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.services.customersService.probes.path }}
+              port: {{ .Values.services.customersService.port }}
+            initialDelaySeconds: {{ .Values.services.customersService.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.services.customersService.probes.liveness.periodSeconds }}
+            failureThreshold: {{ .Values.services.customersService.probes.liveness.failureThreshold }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.customersService.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.customersService.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.customersService.port }}
+      targetPort: {{ .Values.services.customersService.port }}

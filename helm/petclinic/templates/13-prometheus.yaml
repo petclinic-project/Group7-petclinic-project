@@ -1,0 +1,95 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: petclinic-dev-prometheus-config
+  namespace: {{ .Values.namespace }}
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+    scrape_configs:
+    - job_name: prometheus
+      static_configs:
+      - targets: ['localhost:9090']
+    - job_name: api-gateway
+      metrics_path: /actuator/prometheus
+      static_configs:
+      - targets: ['petclinic-dev-{{ .Values.services.apiGateway.name }}:{{ .Values.services.apiGateway.port }}']
+    - job_name: customers-service
+      metrics_path: /actuator/prometheus
+      static_configs:
+      - targets: ['petclinic-dev-{{ .Values.services.customersService.name }}:{{ .Values.services.customersService.port }}']
+    - job_name: visits-service
+      metrics_path: /actuator/prometheus
+      static_configs:
+      - targets: ['petclinic-dev-{{ .Values.services.visitsService.name }}:{{ .Values.services.visitsService.port }}']
+    - job_name: vets-service
+      metrics_path: /actuator/prometheus
+      static_configs:
+      - targets: ['petclinic-dev-{{ .Values.services.vetsService.name }}:{{ .Values.services.vetsService.port }}']
+    - job_name: admin-server
+      metrics_path: /actuator/prometheus
+      static_configs:
+      - targets: ['petclinic-dev-{{ .Values.services.adminServer.name }}:{{ .Values.services.adminServer.port }}']
+    - job_name: genai-service
+      metrics_path: /actuator/prometheus
+      static_configs:
+      - targets: ['petclinic-dev-{{ .Values.services.genaiService.name }}:{{ .Values.services.genaiService.port }}']
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: petclinic-dev-{{ .Values.services.prometheus.name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: petclinic-dev-{{ .Values.services.prometheus.name }}
+spec:
+  replicas: {{ .Values.services.prometheus.replicas }}
+  selector:
+    matchLabels:
+      app: petclinic-dev-{{ .Values.services.prometheus.name }}
+  template:
+    metadata:
+      labels:
+        app: petclinic-dev-{{ .Values.services.prometheus.name }}
+    spec:
+      containers:
+        - name: {{ .Values.services.prometheus.name }}
+          image: "{{ .Values.services.prometheus.image }}:{{ .Values.services.prometheus.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.services.prometheus.port }}
+          resources:
+            requests:
+              memory: {{ .Values.services.prometheus.resources.requests.memory }}
+              cpu: {{ .Values.services.prometheus.resources.requests.cpu }}
+            limits:
+              memory: {{ .Values.services.prometheus.resources.limits.memory }}
+              cpu: {{ .Values.services.prometheus.resources.limits.cpu }}
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+          args:
+            - "--config.file=/etc/prometheus/prometheus.yml"
+            - "--storage.tsdb.path=/prometheus"
+            - "--web.console.libraries=/usr/share/prometheus/console_libraries"
+            - "--web.console.templates=/usr/share/prometheus/consoles"
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: petclinic-dev-prometheus-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: petclinic-dev-{{ .Values.services.prometheus.name }}
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:
+    app: petclinic-dev-{{ .Values.services.prometheus.name }}
+  ports:
+    - protocol: TCP
+      port: {{ .Values.services.prometheus.port }}
+      targetPort: {{ .Values.services.prometheus.port }}
