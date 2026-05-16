@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
         - name: customers-service
-          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-customers-service:d1d52a6
+          image: 527582557964.dkr.ecr.us-east-1.amazonaws.com/petclinic-dev-customers-service:b3cf082
           ports:
             - containerPort: 8081
           resources:
