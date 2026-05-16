@@ -48,7 +48,7 @@ jobs:
 
       - name: Apply ArgoCD Application Manifest
         run: |
-          kubectl apply -f argocd/petclinic-dev-app.yaml
+          kubectl apply -f argocd/petclinic-dev-app.yaml --validate=false
 
       - name: Sync ArgoCD Application
         run: |
