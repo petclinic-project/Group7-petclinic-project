@@ -187,11 +187,11 @@ services:
     port: 8084
     resources:
       requests:
-        memory: "128Mi"
-        cpu: "100m"
-      limits:
         memory: "384Mi"
         cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "500m"
     probes:
       path: /actuator/health
       readiness:
