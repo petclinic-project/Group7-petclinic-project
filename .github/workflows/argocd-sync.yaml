@@ -9,6 +9,8 @@ on:
 permissions:
   id-token: write
   contents: read
+env:
+  ARGOCD_VERSION: v2.10.0
 jobs:
   argocd-sync:
     name: Sync ArgoCD Application
@@ -29,9 +31,10 @@ jobs:
 
       - name: Install ArgoCD CLI
         run: |
-          curl -sSL -o argocd https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64
-          chmod +x argocd
-          sudo mv argocd /usr/local/bin/
+          curl -sSL https://github.com/argoproj/argo-cd/releases/download/${{ env.ARGOCD_VERSION }}/argocd-linux-amd64 -o /tmp/argocd
+          chmod +x /tmp/argocd
+          sudo mv /tmp/argocd /usr/local/bin/argocd
+          argocd version --client
 
       - name: Login to ArgoCD
         run: |
