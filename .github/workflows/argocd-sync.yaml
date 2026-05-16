@@ -1,15 +1,14 @@
 name: ArgoCD Sync Pipeline
-
 on:
   push:
     branches: [ main, feature/deployment ]
     paths:
       - 'kubernetes/**'
-
+      - 'helm/**'
+      - 'argocd/**'
 permissions:
   id-token: write
   contents: read
-
 jobs:
   argocd-sync:
     name: Sync ArgoCD Application
@@ -36,7 +35,15 @@ jobs:
 
       - name: Login to ArgoCD
         run: |
-          argocd login ${{ secrets.ARGOCD_SERVER }} --insecure --grpc-web --username admin --password ${{ secrets.ARGOCD_PASSWORD }}
+          argocd login ${{ secrets.ARGOCD_SERVER }} \
+            --insecure \
+            --grpc-web \
+            --username admin \
+            --password ${{ secrets.ARGOCD_PASSWORD }}
+
+      - name: Apply ArgoCD Application Manifest
+        run: |
+          kubectl apply -f argocd/petclinic-dev-app.yaml
 
       - name: Sync ArgoCD Application
         run: |
