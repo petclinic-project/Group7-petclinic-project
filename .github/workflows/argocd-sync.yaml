@@ -46,9 +46,19 @@ jobs:
             --username admin \
             --password ${{ secrets.ARGOCD_PASSWORD }}
 
-      - name: Apply ArgoCD Application Manifest
+      - name: Create or Update ArgoCD Application
         run: |
-          kubectl apply -f argocd/petclinic-dev-app.yaml --validate=false
+          argocd app create petclinic-dev \
+            --repo https://github.com/petclinic-project/Group7-petclinic-project.git \
+            --path helm/petclinic \
+            --dest-server https://kubernetes.default.svc \
+            --dest-namespace petclinic-dev \
+            --revision feature/deployment \
+            --helm-set image.registry=527582557964.dkr.ecr.us-east-1.amazonaws.com \
+            --sync-policy automated \
+            --auto-prune \
+            --self-heal \
+            --upsert
 
       - name: Sync ArgoCD Application
         run: |
